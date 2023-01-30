@@ -5,97 +5,36 @@ DESCRIPTION...: A Python based reimplementation of the original Smalltalk Marola
 HOME PAGE.....: https://github.com/brnomade/Marola
 """
 
+from StateCharts.abstract_statechart import ObjetoStateChart
 
-class ObjetoTransicao:
 
-    def __init__(self, a_name):
-        if a_name:
-            self._nome = a_name
-        else:
-            self._nome = self.__class__.__name__ + '#' + str(hash(self))
+class Transicao(ObjetoStateChart):
 
-    def __str__(self):
-        return "{0}".format(self._nome)
-
-    def __repr__(self):
-        return "{0}".format(self._nome)
-
-    @property
-    def nome(self):
-        """ Retorna o nome do objeto
+    @classmethod
+    def classe_abstrata(cls):
         """
-        return self._nome
-
-    def seta_nome(self, a_string):
-        """ Define o nome do objeto
+        " Marola Framework - Código automático de consulta ao tipo da classe.
+        Retorna true se a classe for abstrata.
         """
-        if a_string:
-            self._nome = a_string
-        else:
-            raise SyntaxError("Empty name received")
-
-
-class Transicao(ObjetoTransicao):
+        return False
 
     def __init__(self):
         super().__init__(self.__class__.__name__ + '#' + str(hash(self)))
-        self._evento = None
-        self._condicao = lambda statechart: True
-        self._blob_destino = None
-        self._acao = lambda statechart: print("{0} -> ".format(statechart))
+        self._evento = "#nil"
+        self._condicao = "#true"    # indica que a condicao é sempre verdadeira
+        self._origem = "#nil"
+        self._destino = "#nil"
+        self._acao = "#nil"
 
-    @property
-    def evento(self):
-        """
-        " Retorna o evento associado a transicao
-        "
-        """
-        return self._evento
-
-    def seta_evento(self, a_symbol):
-        """
-        " Seta o evento associado a transicao
-        "
-        """
-        # TODO: How to check this -> Symbol mustBeSymbol: aSymbol.
-        self._evento = a_symbol
-
-    @property
-    def condicao(self):
-        """
-        return the condicao
-        """
-        return self._condicao
-
-    def seta_condicao(self, a_lamda):
-        """
-        Seta o bloco condicao da transicao.
-        Antes do disparo o bloco é avaliado. Se o resultado da
-        avaliação for true, a transicao pode ser disparada.
-        O bloco recebe o statechart como parâmetro, e deve retornar
-        true ou false como resultado do teste.
-        """
-        # if callable(mylambda) and mylambda.__name__ == "<lambda>"
-        if callable(a_lamda):
-            self._condicao = a_lamda
+    def __eq__(self, other):
+        if not isinstance(other,Transicao):
+            return False
         else:
-            raise AssertionError("Must be a lambda or a function")
-
-    @property
-    def destino(self):
-        """
-        " Retorna o blob destino da transição
-        "
-        """
-        return self._blob_destino
-
-    def seta_destino(self, a_symbol):
-        """
-        " Seta o nome do blob destino da transição
-        "
-        """
-        # TODO: How to check this -> Symbol mustBeSymbol: aSymbol.
-        self._blob_destino = a_symbol
+            return self._acao == other._acao and \
+                self._evento == other._evento and \
+                self._condicao == other._condicao and \
+                self._origem == other._origem and \
+                self._destino == other._destino
 
     @property
     def acao(self):
@@ -105,40 +44,175 @@ class Transicao(ObjetoTransicao):
         """
         return self._acao
 
-    def seta_acao(self, a_lamda):
+    def seta_acao(self, a_symbol):
         """
-        " Seta o bloco acao da transicao.
-        A ação é executada antes do estado ser alcançado.
-        O bloco recebe o statechart como parametro.
-        "
+        StateChart Project - Seta o símbolo associado a transicao.
+                                        O símbolo recebe o statechart como parâmetro.
+                                        A ação é executada antes do estado ser alcançado.
         """
-        if callable(a_lamda):
-            self._acao = a_lamda
+        if isinstance(a_symbol, str):
+            self._acao = a_symbol
         else:
-            raise AssertionError("Must be a lambda or a function")
+            raise AssertionError("Must be a string")
 
-    def dispara(self, an_owner):
+    def acao_valida(self):
         """
-        " Dispara a transição usando anOwner como contexto da
-        ação. Retorna o blob destino da transição.
+        Statechart Project -  Retorna se a acao é valida.
+        """
+        return self._acao != "#nil"
+
+    def altera_estado_para(self, old_symbol, new_symbol):
+        """
+        StateChart Project - Altera o nome do estado conectado a transição
+                                         de oldSymbol para newSymbol.
+        """
+
+        if not isinstance(old_symbol, str):
+            raise AssertionError("Must be a string")
+
+        if not isinstance(new_symbol, str):
+            raise AssertionError("Must be a string")
+
+        if self._origem == old_symbol:
+            self._origem = new_symbol
+
+        if self._destino == old_symbol:
+            self._destino = new_symbol
+
+    @property
+    def auto_transicao(self):
+        """
+        StateChart Project - Retorna true se a transicao conecta um estado a si mesmo.
+        """
+        return self._origem == self._destino
+
+    @property
+    def condicao(self):
+        """
+        StateChart Project - Retorna o símbolo associado a condicao da transicao.
+        """
+        return self._condicao
+
+    def seta_condicao(self, a_symbol):
+        """
+        StateChart Project - Seta o símbolo associado a condicao da transicao.
+                                          O símbolo recebe o statechart como parâmetro, e deve
+                                           retornar true ou false como resultado do teste da condição.
+                                           Antes do disparo a condição é avaliada. Se o resultado for
+                                          true a transição pode ser disparada.
+        """
+        if not isinstance(a_symbol, str):
+            raise AssertionError("Must be a string")
+        self._condicao = a_symbol
+
+    @property
+    def evento(self):
+        """
+        " StateChart Project - Retorna o evento associado a transicao
         "
         """
-        if self._blob_destino:
-            self._acao(an_owner)
+        return self._evento
+
+    def seta_evento(self, a_symbol):
+        """
+        " StateChart Project - Seta o evento associado a transicao
+        "
+        """
+        if isinstance(a_symbol, str):
+            self._evento = a_symbol
         else:
+            raise AssertionError('must be string')
+
+    @property
+    def connectada(self):
+        """ StateChart Project - Retorna true se a transicao tem o esatdo origem e o
+        estado destino definidos.
+        """
+        return (self._origem != "#nil") and (self._destino != "#nil")
+
+    @property
+    def destino(self):
+        """
+        " StateChart Project - Retorna o estado destino da transição
+        "
+        """
+        return self._destino
+
+    def seta_destino(self, a_symbol):
+        """
+        " Statechart Project - Seta o nome do estado destino da transição
+        "
+        """
+        if not isinstance(a_symbol, str):
+            raise AssertionError('must be a string')
+        self._destino = a_symbol
+
+    def dispara(self, a_statechart):
+        """
+        " StateChart Project - Dispara a transição usando o owner do statechart
+                                       passado como parâmetro como contexto da ação.
+                                       Retorna o estado destino da transição.
+        "
+        """
+        if self._destino == "#nil":
             raise AssertionError("A transição não está conectada")
-        return self._blob_destino
 
-    def disparavel(self, an_event, an_owner):
+        if self._acao != "#nil":
+            a_statechart.cliente().perform_with_arguments(self._acao, [a_statechart])
+
+        return self._destino
+
+    def disparavel_para(self, a_symbol, a_statechart):
         """
-        " Testa se a transição é disparável com o evento de nome
-        aSymbol e com dono anOwner.
-        A transição é disparável se o evento aSymbol for o mesmo
-        evento da transição e se a condição avaliada no contexto
-        de anOwner for verdadeira.
+        " StateChart Project - Testa se a transição é disparável com o evento de nome
+                                        aSymbol e no contexto de aStateChart.
+                                        A transição é disparável se o evento aSymbol for o mesmo
+                                        evento da transição e se a condição avaliada no contexto
+                                       de aStateChart for verdadeira.
         "
         """
-        if self._evento == an_event:
-            return self._condicao(an_owner)
-        else:
+        if self._evento != a_symbol:
             return False
+
+        if self._condicao == "#true":
+            return True
+
+        return a_statechart.cliente().perform_with_arguments(self._condicao, [a_statechart])
+
+    def imagem_padrao(self, a_boolean):
+        """ StateChart Project - Retorna a imagem da transicao
+        """
+        if self._destino == "#nil" or self._origem == "#nil":
+            return "transiko"
+        elif a_boolean:
+            return 'transiok'
+        else:
+            return "transokl"
+
+    @property
+    def incondicional(self):
+        """
+        " Statechart Project - Informa se a condicao da transicao é sempre
+                                           verdadeira.
+
+         "
+        """
+        return self._condicao == "#true"
+
+    @property
+    def origem(self):
+        """
+        " StateChart Project - Retorna o estado origem da transição
+
+         "
+        """
+        return self._origem
+
+    def seta_origem(self, a_symbol):
+        """ Statechart Project - Seta o nome do estado origem da transição
+        """
+        if not isinstance(a_symbol, str):
+            raise AssertionError('must be string')
+        else:
+            self._origem = a_symbol
+

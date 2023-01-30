@@ -11,6 +11,14 @@ from StateCharts.transitions import Transicao
 
 class ObjetoStateChart:
 
+    @classmethod
+    def classe_abstrata(cls):
+        """
+        " Marola Framework - Código automático de consulta ao tipo da classe.
+        Retorna true se a classe for abstrata.
+        """
+        return True
+
     def __init__(self, a_name):
         if a_name:
             self._nome = a_name
@@ -22,6 +30,21 @@ class ObjetoStateChart:
 
     def __repr__(self):
         return "{0}".format(self._nome)
+
+    @property
+    def imagem(self):
+        """ StateChart Project - Retorna a imagem do blob
+        """
+        raise NotImplementedError('Must be implemented by subclass')
+
+    @property
+    def image_padrao(self):
+        """
+            " StateChart Project - Retorna a imagem do blob
+            "
+        """
+        # ^MarolaIcons bitmapNamed: self.image()
+        return self.imagem
 
     @property
     def nome(self):
