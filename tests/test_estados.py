@@ -8,7 +8,6 @@ HOME PAGE.....: https://github.com/brnomade/Marola
 import unittest
 
 from StateCharts.estados import Estado
-from StateCharts.transicoes import Transicao
 
 
 class ContextoParaTeste:
@@ -32,6 +31,7 @@ class TestEstado(unittest.TestCase):
         self.assertFalse(estado.esta_contido)
         self.assertFalse(estado.connectado)
         self.assertFalse(estado.acao_valida)
+        self.assertFalse(estado.contem)
 
     def test_seta_inicial_with_wrong_type_raises_exception(self):
         estado = Estado()
@@ -79,19 +79,70 @@ class TestEstado(unittest.TestCase):
 
     def test_transicoes_retorna_uma_lista(self):
         estado = Estado()
-        self.assertTrue(isinstance(estado.transicoes, list))
+        estado.adiciona_transicao("Junk")
+        result = estado.transicoes
+        self.assertIsInstance(result, list)
+        self.assertEqual(1, len(result))
+        self.assertIn("Junk", result)
 
     def test_adiciona_transicao_with_wrong_type_raises_exception(self):
         estado = Estado()
         with self.assertRaises(ValueError):
-            estado.adiciona_transicao("Junk")
+            estado.adiciona_transicao(123)
 
     def test_adiciona_transicao_with_correct_type(self):
         estado = Estado()
-        junk = Transicao()
-        estado.adiciona_transicao(junk)
-        estado.seta_recipiente("Junk")
-        self.assertEqual("Junk", estado.recipiente)
+        estado.adiciona_transicao("Junk")
+        self.assertIn("Junk", estado.transicoes)
+
+    def test_reseta_contidos(self):
+        estado = Estado()
+        self.assertFalse(estado.contem)
+        estado.adiciona_estado("Junk")
+        self.assertTrue(estado.contem)
+        self.assertTrue(estado.contem_estado("Junk"))
+        estado.reseta_contidos()
+        self.assertFalse(estado.contem)
+
+    def test_contem_estado_with_wrong_type_raises_exception(self):
+        estado = Estado()
+        with self.assertRaises(ValueError):
+            estado.contem_estado(123)
+
+    def test_contem_estado_with_correct_type(self):
+        estado = Estado()
+        estado.contem_estado("Junk")
+
+    def test_adiciona_estado_with_wrong_type_raises_exception(self):
+        estado = Estado()
+        with self.assertRaises(ValueError):
+            estado.adiciona_estado(123)
+
+    def test_adiciona_estado_with_correct_type(self):
+        estado = Estado()
+        estado.adiciona_estado("Junk")
+
+    def test_remove_estado_with_wrong_type_raises_exception(self):
+        estado = Estado()
+        with self.assertRaises(ValueError):
+            estado.remove_estado(123)
+
+    def test_remove_estado_existente_with_correct_type(self):
+        estado = Estado()
+        estado.adiciona_estado("Junk")
+        estado.remove_estado("Junk")
+
+    def test_remove_estado_inexistente_with_correct_type(self):
+        estado = Estado()
+        estado.remove_estado("Junk")
+
+    def test_contidos_retorna_uma_list_correta(self):
+        estado = Estado()
+        estado.adiciona_estado("Junk")
+        result = estado.contidos
+        self.assertIsInstance(result, list)
+        self.assertEqual(1, len(result))
+        self.assertIn("Junk", result)
 
     def test_ativa_estado_em_context_valido(self):
         estado = Estado()

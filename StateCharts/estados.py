@@ -6,14 +6,9 @@ HOME PAGE.....: https://github.com/brnomade/Marola
 """
 
 from StateCharts.abstract_statecharts import ObjetoStateChart
-from StateCharts.transicoes import Transicao
 
 
 class Estado(ObjetoStateChart):
-
-    @property
-    def imagem(self):
-        return "blob"
 
     @classmethod
     def classe_abstrata(cls):
@@ -43,9 +38,30 @@ class Estado(ObjetoStateChart):
         super().__init__()
         self._is_initial = False
         self._is_default = False
-        self._recipiente = None
-        self._transicoes = []
+        self._transicoes = None
         self._acao = None
+        self._recipiente = None
+        self._contidos = None
+        self.reseta_transicoes()
+        self.reseta_recipiente()
+        self.reseta_contidos()
+        self.reseta_acao()
+
+    @property
+    def imagem(self):
+        """ StateChart Project - Retorna a imagem do estado
+        """
+        if self.contem:
+            i = "superestado"
+        else:
+            i = "estado"
+
+        if self.inicial:
+            j = "inicial"
+        else:
+            j = "nao_inicial"
+
+        return "{0}_{1}".format(i, j)
 
     @property
     def inicial(self):
@@ -104,6 +120,56 @@ class Estado(ObjetoStateChart):
         self._recipiente = None
 
     @property
+    def contem(self):
+        """ StateChart Project - Retorna se o receptor contem outros estados
+        """
+        return len(self._contidos) > 0
+
+    def contem_estado(self, a_symbol):
+        """
+        StateChart Project - Informa se o receptor contém o estado de nome aSymbol.
+        """
+        if isinstance(a_symbol, str):
+            return a_symbol in self._contidos
+        else:
+            raise ValueError('Must be a string')
+
+    def adiciona_estado(self, a_symbol):
+        """
+          " StateChart Project - Adiciona o estado de nome aSymbol ao estado receptor.
+          "
+        """
+        if isinstance(a_symbol, str):
+            self._contidos.add(a_symbol)
+        else:
+            raise ValueError('Must be a string')
+
+    def remove_estado(self, a_symbol):
+        """
+          " StateChart Project - Remove o estado de nome aSymbol do estado receptor.
+          "
+        """
+        if isinstance(a_symbol, str):
+            if a_symbol in self._contidos:
+                self._contidos.remove(a_symbol)
+        else:
+            raise ValueError('Must be a string')
+
+    @property
+    def contidos(self):
+        """
+        StateChart Project - Retorna o nome de todos os estados contidos no
+                                          receptor.
+        """
+        return list(self._contidos)
+
+    def reseta_contidos(self):
+        """
+        StateChart Project - reseta os contidos de self para o mesma situacao no momento da criacao de self.
+        """
+        self._contidos = set()
+
+    @property
     def acao(self):
         """
         Statechart Project -  Retorna a atividade do estado.
@@ -150,13 +216,13 @@ class Estado(ObjetoStateChart):
         """
         return len(self._transicoes) > 0
 
-    def adiciona_transicao(self, uma_transition):
+    def adiciona_transicao(self, um_symbol):
         """ StateChart Project - Adiciona uma transicao ao blob.
         """
-        if isinstance(uma_transition, Transicao):
-            self._transicoes.append(uma_transition)
+        if isinstance(um_symbol, str):
+            self._transicoes.append(um_symbol)
         else:
-            raise ValueError('must be instance of Transicao')
+            raise ValueError('must be a string')
 
     # def seleciona_transicoes_em(self, a_symbol, um_diagrama):
     #     """  PRIVADO - Retorna as transições da hierarquia de estados iniciada no
@@ -194,7 +260,13 @@ class Estado(ObjetoStateChart):
                                                     conectadas ao blob.
 
         """
-        return self._transicoes
+        return list(self._transicoes)
+
+    def reseta_transicoes(self):
+        """
+        StateChart Project - reseta transicoes para o mesma situacao no momento da criacao de self.
+        """
+        self._transicoes = []
 
     def ativa_estado(self, um_objeto_contexto):
         """
@@ -207,113 +279,30 @@ class Estado(ObjetoStateChart):
             resposta = method_to_call(um_objeto_contexto)
         return resposta
 
-
-class EstadoSimples(Estado):
-
-    @classmethod
-    def classe_abstrata(cls):
-        """
-        " Marola Framework - Código automático de consulta ao tipo da classe.
-        Retorna true se a classe for abstrata.
-        """
-        return False
-
-    def contem_estado(self, a_symbol):
-        """
-        StateChart Project - Informa se o  receptor contém o estado de nome aSymbol.
-        """
-        return False
-
-    @property
-    def imagem(self):
-        """ StateChart Project - Retorna a imagem do estado
-        """
-        if self._is_initial:
-            return "blobi"
-        else:
-            return "blobd"
-
-    @property
-    def superestado(self):
-        """ StateChart Project - Retorna se o receptor é ou não um superestado
-        """
-        return False
+    # def estados_default_2(self, um_diagrama):
+    #     """
+    #     StateChart Project - Retorna os subestados do receptor que
+    #                                         tem o atributo default setado para true.
+    #     """
+    #     answer = []
+    #     for nome_do_estado in self._lista_de_estados:
+    #         if um_diagrama.o_estado(nome_do_estado).default:
+    #             answer.append(nome_do_estado)
+    #     return answer
+    #
+    # def estados_default(self, um_diagrama):
+    #     """
+    #     StateChart Project - Retorna os subestados do receptor que
+    #                          tem o atributo default setado para true.
+    #     """
+    #     answer = []
+    #     for nome_do_estado in self._lista_de_estados:
+    #         estado = um_diagrama.o_estado(nome_do_estado)
+    #         if estado.default:
+    #             answer.append(nome_do_estado)
+    #             if estado.contem_outros_estados:
+    #                 answer.append(estado.estados_default(um_diagrama))
+    #     return answer
 
 
-class EstadoComposto(Estado):
 
-    def __init__(self):
-        """
-            PRIVADO - Inicializações do blob nodo.
-        """
-        super().__init__()
-        self._lista_de_estados = []
-        self._estado_ativo = None
-
-    def adiciona_estado(self, a_symbol):
-        """
-          " StateChart Project - Adiciona o blob de nome aSymbol ao blob receptor.
-          "
-        """
-        self._lista_de_estados.append(a_symbol)
-
-    def contem_estado(self, a_symbol):
-        """
-        StateChart Project - Informa se o receptor contém o estado de nome aSymbol.
-        """
-        return a_symbol in self._lista_de_estados
-
-    def estados_default_2(self, um_diagrama):
-        """
-        StateChart Project - Retorna os subestados do receptor que
-                                            tem o atributo default setado para true.
-        """
-        answer = []
-        for nome_do_estado in self._lista_de_estados:
-            if um_diagrama.o_estado(nome_do_estado).default:
-                answer.append(nome_do_estado)
-        return answer
-
-    def estados_default(self, um_diagrama):
-        """
-        StateChart Project - Retorna os subestados do receptor que
-                             tem o atributo default setado para true.
-        """
-        answer = []
-        for nome_do_estado in self._lista_de_estados:
-            estado = um_diagrama.o_estado(nome_do_estado)
-            if estado.default:
-                answer.append(nome_do_estado)
-                if estado.superestado:
-                    answer.append(estado.estados_default(um_diagrama))
-        return answer
-
-    @property
-    def imagem(self):
-        """ StateChart Project - Retorna a imagem do estado
-        """
-        if self._is_initial:
-            return "blobni"
-        else:
-            return "blobnd"
-
-    def nome_dos_estados(self):
-        """
-        StateChart Project - Retorna o nome de todos os estados contidos no
-                                          receptor.
-        """
-        return self._lista_de_estados
-
-    def remove_subestado(self, a_symbol):
-        """
-          " StateChart Project - Remove o subestado de nome aSymbol.
-          "
-        """
-        if a_symbol in self._lista_de_estados:
-            self._lista_de_estados.remove(a_symbol)
-
-    @property
-    def superestado(self):
-        """ StateChart Project - Retorna se o receptor é ou não um superestado
-        """
-        return True
