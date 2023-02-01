@@ -9,27 +9,22 @@ import unittest
 from StateCharts.diagramas_de_estado import DiagramaDeEstados
 
 
-class EscopoDeTeste:
+class ContextoParaTeste:
 
-    @classmethod
-    def _acao_em_time(cls, a_statechart):
-        print("acao '{0}' disparada em {0}. Estados ativos {1}".format('_acao_em_time',
-                                                                       a_statechart.nome,
-                                                                       a_statechart.estados_ativos(),
-                                                                       ))
-    @classmethod
-    def _acao_em_chime(cls, a_statechart):
-        print("acao '{0}' disparada em {0}. Estados ativos {1}".format('_acao_em_chime',
-                                                                       a_statechart.nome,
-                                                                       a_statechart.estados_ativos(),
-                                                                       ))
+    def _acao_generica(self, um_label, um_objeto_contexto):
+        print("acao '{0}' disparada por '{1}'".format(um_label,
+                                                      self.__class__.__name__ + str(hash(self)),
+                                                      ))
+        return "OK"
 
-    @classmethod
-    def _acao_emite_beep(cls, a_statechart):
-        print("acao '{0}' disparada em {0}. Estados ativos {1}".format('_acao_emite_beep',
-                                                                       a_statechart.nome,
-                                                                       a_statechart.estados_ativos(),
-                                                                       ))
+    def _acao_em_time(self, um_objeto_contexto):
+        self._acao_generica("_acao_em_time", um_objeto_contexto)
+
+    def _acao_em_chime(self, um_objeto_contexto):
+        self._acao_generica("_acao_em_chime", um_objeto_contexto)
+
+    def _acao_emite_beep(self, um_objeto_contexto):
+        self._acao_generica("_acao_emite_beep", um_objeto_contexto)
 
 
 class TestDiagramaDeEstados(unittest.TestCase):
@@ -37,7 +32,7 @@ class TestDiagramaDeEstados(unittest.TestCase):
     def test_basic_diagram(self):
         state = DiagramaDeEstados()
 
-        state.seta_nome_raiz("main")
+        state.seta_raiz("main")
 
         state.adiciona_estado_em("chime", "main")
         state.adiciona_estado_em("silence", "main")
@@ -45,23 +40,23 @@ class TestDiagramaDeEstados(unittest.TestCase):
 
         state.seta_estado_default("time")
 
-        state.conecta_a_com_e_executando_caso("time", "chime", "a", "nil", "acao_emite_beep", "true")
-        state.conecta_a_com_e_executando_caso("time", "silence", "b", "nil", "acao_emite_beep", "true")
-        state.conecta_a_com_e_executando_caso("chime", "time", "a", "nil", "acao_em_chime", "true")
+        state.conecta_a_com_e_executando_caso("time", "chime", "a", "nil", "_acao_emite_beep", "true")
+        state.conecta_a_com_e_executando_caso("time", "silence", "b", "nil", "_acao_emite_beep", "true")
+        state.conecta_a_com_e_executando_caso("chime", "time", "a", "nil", "_acao_em_chime", "true")
 
         state.seta_estado_inicial("time")
 
-        state.seta_cliente(EscopoDeTeste)
+        state.seta_cliente(ContextoParaTeste())
 
         state.ativa()
 
-        state.evento("a")
-        state.evento("a")
-        state.evento("d")
-        state.evento("a")
-        state.evento("d")
-        state.evento("t_hits_hr")
-        state.evento("d")
+        state.processa_evento("a")
+        state.processa_evento("a")
+        state.processa_evento("d")
+        state.processa_evento("a")
+        state.processa_evento("d")
+        state.processa_evento("t_hits_hr")
+        state.processa_evento("d")
 
         print(state)
 
@@ -194,8 +189,8 @@ class TestDiagramaDeEstados(unittest.TestCase):
 
         state.ativa()
         state.seta_cliente(self)
-        state.evento("a")
-        state.evento("a")
+        state.processa_evento("a")
+        state.processa_evento("a")
         #state.evento("d")
         #state.evento("a")
         #state.evento("d")

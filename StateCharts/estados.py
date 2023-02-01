@@ -276,8 +276,6 @@ class Estado(ObjetoStateChart):
         if self.acao_valida:
             method_to_call = getattr(um_objeto_contexto, self.acao.lower())
             return method_to_call(um_objeto_contexto)
-        else:
-            raise AssertionError("A acao nao e' valida")
 
     # def estados_default_2(self, um_diagrama):
     #     """
