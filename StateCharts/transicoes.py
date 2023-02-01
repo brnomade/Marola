@@ -4,11 +4,16 @@ COPYRIGHT.....: Copyright (C) 2023- Andre L Ballista
 DESCRIPTION...: A Python based reimplementation of the original Smalltalk Marola framework
 HOME PAGE.....: https://github.com/brnomade/Marola
 """
-
-from StateCharts.abstract_statechart import ObjetoStateChart
+from StateCharts.abstract_statecharts import ObjetoStateChart
 
 
 class Transicao(ObjetoStateChart):
+
+    @property
+    def imagem(self):
+        """ StateChart Project - Retorna a imagem da transicao
+        """
+        return "transokl"
 
     @classmethod
     def classe_abstrata(cls):
@@ -18,23 +23,19 @@ class Transicao(ObjetoStateChart):
         """
         return False
 
-    def __init__(self):
-        super().__init__(self.__class__.__name__ + '#' + str(hash(self)))
-        self._evento = "#nil"
-        self._condicao = "#true"    # indica que a condicao é sempre verdadeira
-        self._origem = "#nil"
-        self._destino = "#nil"
-        self._acao = "#nil"
-
     def __eq__(self, other):
-        if not isinstance(other,Transicao):
+        if not isinstance(other, Transicao):
             return False
         else:
-            return self._acao == other._acao and \
-                self._evento == other._evento and \
-                self._condicao == other._condicao and \
-                self._origem == other._origem and \
-                self._destino == other._destino
+            return (self._acao == other._acao) and (self._evento == other._evento) and (self._condicao == other._condicao) and (self._origem == other._origem) and (self._destino == other._destino)
+
+    def __init__(self):
+        super().__init__()
+        self._evento = "nil"
+        self._condicao = "true"    # indica que a condicao é sempre verdadeira
+        self._origem = "nil"
+        self._destino = "nil"
+        self._acao = "nil"
 
     @property
     def acao(self):
@@ -59,7 +60,7 @@ class Transicao(ObjetoStateChart):
         """
         Statechart Project -  Retorna se a acao é valida.
         """
-        return self._acao != "#nil"
+        return self._acao != "nil"
 
     def altera_estado_para(self, old_symbol, new_symbol):
         """
@@ -124,11 +125,11 @@ class Transicao(ObjetoStateChart):
             raise AssertionError('must be string')
 
     @property
-    def connectada(self):
+    def conectada(self):
         """ StateChart Project - Retorna true se a transicao tem o esatdo origem e o
         estado destino definidos.
         """
-        return (self._origem != "#nil") and (self._destino != "#nil")
+        return (self._origem != "nil") and (self._destino != "nil")
 
     @property
     def destino(self):
@@ -154,17 +155,18 @@ class Transicao(ObjetoStateChart):
                                        Retorna o estado destino da transição.
         "
         """
-        if self._destino == "#nil":
+        if self._destino == "nil":
             raise AssertionError("A transição não está conectada")
 
-        if self._acao != "#nil":
-            a_statechart.cliente().perform_with_arguments(self._acao, [a_statechart])
+        if self.acao_valida():
+            method_to_call = getattr(a_statechart.cliente(), "_" + self._acao.lower())
+            method_to_call(a_statechart)
 
         return self._destino
 
     def disparavel_para(self, a_symbol, a_statechart):
         """
-        " StateChart Project - Testa se a transição é disparável com o evento de nome
+        " StateChart Project - Testa se a transição é disparável com a condicao de nome
                                         aSymbol e no contexto de aStateChart.
                                         A transição é disparável se o evento aSymbol for o mesmo
                                         evento da transição e se a condição avaliada no contexto
@@ -174,15 +176,20 @@ class Transicao(ObjetoStateChart):
         if self._evento != a_symbol:
             return False
 
-        if self._condicao == "#true":
+        if self._condicao == "true":
             return True
+        else:
+            method_to_call = getattr(a_statechart.cliente(), "_" + self._condicao.lower())
+            resposta = method_to_call(a_statechart.cliente(), a_statechart)
+            if isinstance(resposta, bool):
+                return resposta
+            else:
+                raise AssertionError('Condicao nao retornou um valor boleano.')
 
-        return a_statechart.cliente().perform_with_arguments(self._condicao, [a_statechart])
-
-    def imagem_padrao(self, a_boolean):
+    def imagem_from(self, a_boolean):
         """ StateChart Project - Retorna a imagem da transicao
         """
-        if self._destino == "#nil" or self._origem == "#nil":
+        if self._destino == "nil" or self._origem == "nil":
             return "transiko"
         elif a_boolean:
             return 'transiok'
@@ -197,7 +204,7 @@ class Transicao(ObjetoStateChart):
 
          "
         """
-        return self._condicao == "#true"
+        return self._condicao == "true"
 
     @property
     def origem(self):
@@ -215,4 +222,3 @@ class Transicao(ObjetoStateChart):
             raise AssertionError('must be string')
         else:
             self._origem = a_symbol
-

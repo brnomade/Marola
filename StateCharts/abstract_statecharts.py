@@ -5,19 +5,20 @@ DESCRIPTION...: A Python based reimplementation of the original Smalltalk Marola
 HOME PAGE.....: https://github.com/brnomade/Marola
 """
 
+from abc import ABC, abstractmethod
+from datetime import datetime
+import random
 
-class ObjetoStateChart:
+class ObjetoStateChart(ABC):
 
     @classmethod
+    @abstractmethod
     def classe_abstrata(cls):
         """
         " Marola Framework - Código automático de consulta ao tipo da classe.
-        Retorna true se a classe for abstrata.
+        Retorna true se a classe for abstrata, false caso-contrario.
         """
-        return True
-
-    def __init__(self):
-        self._nome = self.__class__.__name__ + '#' + str(hash(self))
+        pass
 
     def __str__(self):
         return "{0}".format(self._nome)
@@ -25,11 +26,17 @@ class ObjetoStateChart:
     def __repr__(self):
         return "{0}".format(self._nome)
 
+    def __init__(self):
+        self._nome = "{0}#{1}.{2}".format(self.__class__.__name__,
+                                          datetime.timestamp(datetime.now()),
+                                          random.randint(0, 65535))
+
     @property
+    @abstractmethod
     def imagem(self):
-        """ StateChart Project - Retorna a imagem do blob
+        """ StateChart Project - Retorna o nome da imagem do blob
         """
-        raise NotImplementedError('Must be implemented by subclass')
+        pass
 
     @property
     def image_padrao(self):
@@ -56,3 +63,4 @@ class ObjetoStateChart:
                 raise SyntaxError("Empty name received")
         else:
             raise AssertionError("Must be string")
+        return self

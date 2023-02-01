@@ -139,7 +139,7 @@ class BlobNodo(Blob):
 
         self._blob_ativo = blobs_ativos.pop(0)
         a_statechart.seta_blob(self._blob_ativo)
-        self._blob_ativo.ativa(a_statechart) # TODO - esta linha esta provavelmente incorreta - original     (aStatechart blob: blobAtivo) ativa: aStatechart.
+        self._blob_ativo.ativa_estado(a_statechart) # TODO - esta linha esta provavelmente incorreta - original     (aStatechart blob: blobAtivo) ativa: aStatechart.
 
     def ativa_blob_em(self, a_symbol, a_statechart):
         """ StateChart Project - Define o blob de nome aSymbol como o blob

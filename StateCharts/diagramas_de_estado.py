@@ -5,12 +5,16 @@ DESCRIPTION...: A Python based reimplementation of the original Smalltalk Marola
 HOME PAGE.....: https://github.com/brnomade/Marola
 """
 
-from StateCharts.abstract_statechart import ObjetoStateChart
-from StateCharts.estados import EstadoSimples, Superestado
-from StateCharts.transitions import Transicao
+from StateCharts.abstract_statecharts import ObjetoStateChart
+from StateCharts.estados import EstadoSimples, EstadoComposto
+from StateCharts.transicoes import Transicao
 
 
 class DiagramaDeEstados(ObjetoStateChart):
+
+    @property
+    def imagem(self):
+        return "diagrama"
 
     @classmethod
     def classe_abstrata(cls):
@@ -23,15 +27,12 @@ class DiagramaDeEstados(ObjetoStateChart):
     def __init__(self):
         super().__init__()
         self._estados = {}
-        self._eventos = []
+        self._eventos = set()
         self._estados_ativos = []
         self._cliente = None
         self._fila_eventos = []
-
-        self._raiz = Superestado()
-        self._raiz.seta_nome('#raiz')
-
-        self._estados.update({self._raiz.nome: self._raiz})
+        self._raiz = 'raiz'
+        self._estados.update({self._raiz : EstadoComposto().seta_nome(self._raiz)})
 
     def adiciona_como_estado(self, a_symbol, a_boolean):
         """
@@ -49,7 +50,7 @@ class DiagramaDeEstados(ObjetoStateChart):
         if a_boolean:
             novo = EstadoSimples()
         else:
-            novo = Superestado()
+            novo = EstadoComposto()
 
         novo.seta_nome(a_symbol)
         self._estados.update({novo.nome : novo})
@@ -76,7 +77,7 @@ class DiagramaDeEstados(ObjetoStateChart):
             raise AssertionError("Estado {0} nao e superestado".format(outro_symbol))
 
         self.adiciona_como_estado(a_symbol, True)
-        self.o_estado(a_symbol).estado_pai(outro_symbol)
+        self.o_estado(a_symbol).seta_estado_pai(outro_symbol)
         self.o_estado(outro_symbol).adiciona_estado(a_symbol)
 
     def adiciona_superestado_em(self, a_symbol, outro_symbol):
@@ -133,7 +134,7 @@ class DiagramaDeEstados(ObjetoStateChart):
         for nome_estado in self.todos_os_estados():
             estado = self.o_estado(nome_estado)
             "etapa 3. O erro esta no bloco seguinte..."
-            if isinstance(estado, Superestado):
+            if isinstance(estado, EstadoComposto):
                 if estado.contem_estado(old_symbol):
                     estado.remove_subestado(old_symbol)
                     estado.adiciona_estado(new_symbol)
@@ -148,10 +149,10 @@ class DiagramaDeEstados(ObjetoStateChart):
                               Suas ações são executadas
         """
         self._estados_ativos = []
-        for nome_estado, estado in self._estados:
+        for estado in self._estados.values():
             if estado.inicial:
-                self._estados_ativos.append(estado)
-                estado.ativa(self)
+                self._estados_ativos.append(estado.nome)
+                estado.ativa_estado(self)
 
         if not self._estados_ativos:
             raise AssertionError('Nenhum estado inicial definido no diagrama')
@@ -160,7 +161,7 @@ class DiagramaDeEstados(ObjetoStateChart):
         """
         Statechart Project - Associa atividades aos estados.
         """
-        self.o_estado(another_symbol).atividade(a_symbol)
+        self.o_estado(another_symbol).seta_atividade(a_symbol)
 
     @property
     def cliente(self):
@@ -172,6 +173,16 @@ class DiagramaDeEstados(ObjetoStateChart):
         """ Statechart Project - Seta o cliente do receptor.
         """
         self._cliente = an_object
+
+    def conecta_a_com_e_executando_caso(self, origem_symbol, destino_symbol, evento_symbol, evento_colateral_symbol, acao_symbol, condicao_symbol):
+        """
+        " Statechart Project - Conecta o estado origem de nome aSymbol com o estado destino
+                                            de nome otherSymbol. A Transicao criada é associada ao evento
+                                            de nome anotherSymbol. acaoSymbol é definido como a ação
+                                            da transição
+        "
+        """
+        self.conecta_a_com_executando_caso(origem_symbol, destino_symbol, evento_symbol, acao_symbol, condicao_symbol)
 
     def conecta_a_com_executando_caso(self, origem_symbol, destino_symbol, evento_symbol, acao_symbol, condicao_symbol):
         """
@@ -193,7 +204,7 @@ class DiagramaDeEstados(ObjetoStateChart):
 
         origem.adiciona_transicao(transicao)
 
-        self._eventos.append(evento_symbol)
+        self._eventos.add(evento_symbol)
 
     def contem_estado(self, a_symbol):
         """ Statechart Project - Retorna true se o estado aSymbol já existe no receptor.
@@ -219,11 +230,16 @@ class DiagramaDeEstados(ObjetoStateChart):
         """
         return a_symbol in self._estados_ativos
 
+    def estados_ativos(self):
+        """ Statechart Project - Retorna uma lista com todos os estadosAtivos.
+        """
+        return self._estados_ativos.copy()
+
     @property
     def estado_raiz(self):
         """ Statechart Project - Retorna o estado raiz do statechart.
         """
-        return self._raiz
+        return self.o_estado(self._raiz)
 
     def evento(self, a_symbol):
         """
@@ -242,28 +258,26 @@ class DiagramaDeEstados(ObjetoStateChart):
             return False
 
         disparou = False
-        novos_destinos = {}
-        novo_estados_ativos = []
+        destinos = set()
+        #novo_estados_ativos = []
 
-        for estado_i in self._estados_ativos:
-            transicao = estado_i.transicao_para(a_symbol, self)
+        for i in self._estados_ativos:
+            transicao = self.o_estado(i).transicao_para(a_symbol, self)
             if transicao:
                 destino = self.o_estado(transicao.dispara(self))
-                novos_destinos.add(destino)
-                if destino.superestado:
-                    for nome_estado in destino.estados_default(self):
-                        estado_j = self.o_estado(nome_estado)
-                        novos_destinos.append(estado_j)
+                destinos.add(destino)
+                if isinstance(destino, EstadoComposto):
+                    for j in destino.estados_default(self):
+                        destinos.add(self.o_estado(j))
             else:
                 # não houve transição para este estado
-                novo_estados_ativos.append(estado_i)
+                destinos.add(self.o_estado(i))
 
-        for estado_i in novos_destinos:
-            estado_i.ativa(self)
-            disparou = True
-            if not estado_i.superstado:
-                novo_estados_ativos.append(estado_i)
+        for estado in destinos:
+            estado.ativa(self)
 
+
+        self._
         if len(self._fila_eventos) > 0:
             self.seta_evento(self._fila_eventos.pop(0))
 
@@ -282,7 +296,7 @@ class DiagramaDeEstados(ObjetoStateChart):
         """
         if isinstance(a_symbol, str):
             if self.existe_estado(a_symbol):
-                return isinstance(self.o_estado(a_symbol), Superestado)
+                return isinstance(self.o_estado(a_symbol), EstadoComposto)
             else:
                 return False
         else:
@@ -320,21 +334,22 @@ class DiagramaDeEstados(ObjetoStateChart):
         """
         Statechart Project - Retorna o nome da raiz do statechart.
         """
-        return self._raiz.nome
+        return self._raiz
 
-    def seta_raiz_nome(self, a_symbol):
+    def seta_nome_raiz(self, a_symbol):
         """
         Statechart Project - Seta o nome do statechart.
         """
         if isinstance(a_symbol, str):
             if a_symbol:
-                if self._raiz.nome != a_symbol:
+                if self._raiz != a_symbol:
                     if self.contem_estado(a_symbol):
                         raise AssertionError("Estado {0} ja existente no diagrama".format(a_symbol))
                     else:
-                        self._estados.pop(self._raiz.nome)
-                        self._raiz.seta_nome(a_symbol)
-                        self._estados.update({self._raiz.nome: self._raiz})
+                        estado = self._estados.pop(self._raiz)
+                        estado.seta_nome(a_symbol)
+                        self._raiz = a_symbol
+                        self._estados.update({estado.nome: estado})
             else:
                 raise SyntaxError("Empty name received")
         else:
@@ -351,4 +366,25 @@ class DiagramaDeEstados(ObjetoStateChart):
                 raise AssertionError("Estado {0} inexistente.".format(a_symbol))
         else:
             raise AssertionError('must be a string')
+
+    def todos_os_estados(self):
+        """
+        " Statechart Project - Retorna uma colecao com o nome de todos os
+                                      estados existentes no diagrama.
+
+        "
+        """
+        return self._estados.keys()
+
+    def todos_os_eventos(self):
+        """
+        " Statechart Project - Retorna uma colecao com o nome de todos os eventos
+                                       utilizados no diagrama.
+
+        "
+        """
+        return self._eventos.copy()
+
+    def transicao(self, a_symbol):
+        pass
 

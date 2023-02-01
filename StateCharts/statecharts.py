@@ -6,7 +6,7 @@ HOME PAGE.....: https://github.com/brnomade/Marola
 """
 
 from StateCharts.blobs import Blob
-from StateCharts.transitions import Transicao
+from StateCharts.transicoes import Transicao
 
 
 class ObjetoStateChart:
@@ -166,7 +166,7 @@ class StateChart(ObjetoStateChart):
         self._blob_ativos = []
         for blob in self._blobs.values():
             if blob.inicial:
-                blob.ativa(self)
+                blob.ativa_estado(self)
                 self._blob_ativos.append(blob)
         if not self._blob_ativos:
             raise AssertionError('Nenhum estado inicial definido')
