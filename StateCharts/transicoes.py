@@ -9,12 +9,6 @@ from StateCharts.abstract_statecharts import ObjetoStateChart
 
 class Transicao(ObjetoStateChart):
 
-    @property
-    def imagem(self):
-        """ StateChart Project - Retorna a imagem da transicao
-        """
-        return "transokl"
-
     @classmethod
     def classe_abstrata(cls):
         """
@@ -23,69 +17,78 @@ class Transicao(ObjetoStateChart):
         """
         return False
 
+    def __str__(self):
+        return "({0}){1} : {2} [ {3} ] / {4}".format(self.__class__.__name__,
+                                                     self._nome,
+                                                     self._evento,
+                                                     self._condicao,
+                                                     self._acao)
+
+    def __repr__(self):
+        return "({0}){1} : {2} [ {3} ] / {4}".format(self.__class__.__name__,
+                                                     self._nome,
+                                                     self._evento,
+                                                     self._condicao,
+                                                     self._acao)
+
     def __eq__(self, other):
         if not isinstance(other, Transicao):
             return False
         else:
-            return (self._acao == other._acao) and (self._evento == other._evento) and (self._condicao == other._condicao) and (self._origem == other._origem) and (self._destino == other._destino)
+            return (self._acao == other._acao) and (self._evento == other._evento) and \
+                (self._condicao == other._condicao) and (self._origem == other._origem) and \
+                (self._destino == other._destino)
 
     def __init__(self):
         super().__init__()
-        self._evento = "nil"
-        self._condicao = "true"    # indica que a condicao é sempre verdadeira
-        self._origem = "nil"
-        self._destino = "nil"
-        self._acao = "nil"
+        self._evento = None
+        self._condicao = None
+        self._origem = None
+        self._destino = None
+        self._acao = None
+
+        self.reseta_evento()
+        self.reseta_condicao()
+        self.reseta_origem()
+        self.reseta_destino()
+        self.reseta_acao()
 
     @property
-    def acao(self):
+    def imagem(self):
+        """ StateChart Project - Retorna a imagem da transicao
         """
-        " Retorna o blob destino da transição
-        "
-        """
-        return self._acao
-
-    def seta_acao(self, a_symbol):
-        """
-        StateChart Project - Seta o símbolo associado a transicao.
-                                        O símbolo recebe o statechart como parâmetro.
-                                        A ação é executada antes do estado ser alcançado.
-        """
-        if isinstance(a_symbol, str):
-            self._acao = a_symbol
+        if self.conectada:
+            return "transicao_connectada"
         else:
-            raise AssertionError("Must be a string")
-
-    def acao_valida(self):
-        """
-        Statechart Project -  Retorna se a acao é valida.
-        """
-        return self._acao != "nil"
-
-    def altera_estado_para(self, old_symbol, new_symbol):
-        """
-        StateChart Project - Altera o nome do estado conectado a transição
-                                         de oldSymbol para newSymbol.
-        """
-
-        if not isinstance(old_symbol, str):
-            raise AssertionError("Must be a string")
-
-        if not isinstance(new_symbol, str):
-            raise AssertionError("Must be a string")
-
-        if self._origem == old_symbol:
-            self._origem = new_symbol
-
-        if self._destino == old_symbol:
-            self._destino = new_symbol
+            return "transicao_invalida"
 
     @property
-    def auto_transicao(self):
+    def evento(self):
         """
-        StateChart Project - Retorna true se a transicao conecta um estado a si mesmo.
+        Statechart Project -  Retorna o evento do transicao.
         """
-        return self._origem == self._destino
+        return self._evento
+
+    @property
+    def evento_valido(self):
+        """
+        Statechart Project -  Retorna se a evento de self esta definido.
+        """
+        return self._evento is not None
+
+    def seta_evento(self, um_symbol):
+        """ StateChart Project - Seta o evento associado a transicao
+        """
+        if isinstance(um_symbol, str):
+            self._evento = um_symbol
+        else:
+            raise ValueError('Must be a string')
+
+    def reseta_evento(self):
+        """
+        StateChart Project - reseta o evento de self para o mesma situacao no momento da criacao de self.
+        """
+        self._evento = None
 
     @property
     def condicao(self):
@@ -94,131 +97,173 @@ class Transicao(ObjetoStateChart):
         """
         return self._condicao
 
-    def seta_condicao(self, a_symbol):
+    def seta_condicao(self, um_symbol):
+        """ StateChart Project - Seta o símbolo associado a condicao de self
+                                 O símbolo recebe o statechart como parâmetro.
+                                 A atividade é executada quando o estado é alcançado.
         """
-        StateChart Project - Seta o símbolo associado a condicao da transicao.
-                                          O símbolo recebe o statechart como parâmetro, e deve
-                                           retornar true ou false como resultado do teste da condição.
-                                           Antes do disparo a condição é avaliada. Se o resultado for
-                                          true a transição pode ser disparada.
-        """
-        if not isinstance(a_symbol, str):
-            raise AssertionError("Must be a string")
-        self._condicao = a_symbol
-
-    @property
-    def evento(self):
-        """
-        " StateChart Project - Retorna o evento associado a transicao
-        "
-        """
-        return self._evento
-
-    def seta_evento(self, a_symbol):
-        """
-        " StateChart Project - Seta o evento associado a transicao
-        "
-        """
-        if isinstance(a_symbol, str):
-            self._evento = a_symbol
+        if isinstance(um_symbol, str):
+            self._condicao = um_symbol
         else:
-            raise AssertionError('must be string')
+            raise ValueError('Must be a string')
 
-    @property
-    def conectada(self):
-        """ StateChart Project - Retorna true se a transicao tem o esatdo origem e o
-        estado destino definidos.
+    def reseta_condicao(self):
         """
-        return (self._origem != "nil") and (self._destino != "nil")
-
-    @property
-    def destino(self):
+        StateChart Project - reseta a acao de self para o mesma situacao no momento da criacao de self.
         """
-        " StateChart Project - Retorna o estado destino da transição
-        "
-        """
-        return self._destino
-
-    def seta_destino(self, a_symbol):
-        """
-        " Statechart Project - Seta o nome do estado destino da transição
-        "
-        """
-        if not isinstance(a_symbol, str):
-            raise AssertionError('must be a string')
-        self._destino = a_symbol
-
-    def dispara(self, a_statechart):
-        """
-        " StateChart Project - Dispara a transição usando o owner do statechart
-                                       passado como parâmetro como contexto da ação.
-                                       Retorna o estado destino da transição.
-        "
-        """
-        if self._destino == "nil":
-            raise AssertionError("A transição não está conectada")
-
-        if self.acao_valida():
-            method_to_call = getattr(a_statechart.cliente(), "_" + self._acao.lower())
-            method_to_call(a_statechart)
-
-        return self._destino
-
-    def disparavel_para(self, a_symbol, a_statechart):
-        """
-        " StateChart Project - Testa se a transição é disparável com a condicao de nome
-                                        aSymbol e no contexto de aStateChart.
-                                        A transição é disparável se o evento aSymbol for o mesmo
-                                        evento da transição e se a condição avaliada no contexto
-                                       de aStateChart for verdadeira.
-        "
-        """
-        if self._evento != a_symbol:
-            return False
-
-        if self._condicao == "true":
-            return True
-        else:
-            method_to_call = getattr(a_statechart.cliente(), "_" + self._condicao.lower())
-            resposta = method_to_call(a_statechart.cliente(), a_statechart)
-            if isinstance(resposta, bool):
-                return resposta
-            else:
-                raise AssertionError('Condicao nao retornou um valor boleano.')
-
-    def imagem_from(self, a_boolean):
-        """ StateChart Project - Retorna a imagem da transicao
-        """
-        if self._destino == "nil" or self._origem == "nil":
-            return "transiko"
-        elif a_boolean:
-            return 'transiok'
-        else:
-            return "transokl"
+        self._condicao = None
 
     @property
     def incondicional(self):
         """
-        " Statechart Project - Informa se a condicao da transicao é sempre
-                                           verdadeira.
-
-         "
+        Statechart Project - Informa se a condicao da transicao é sempre verdadeira.
         """
-        return self._condicao == "true"
+        return self._condicao is None
+
+    @property
+    def ciclo(self):
+        """
+        StateChart Project - Retorna true se a transicao tem origem e destino iguais
+        """
+        return self._origem == self._destino
+
+    @property
+    def conectada(self):
+        """ StateChart Project - Retorna true se a transicao tem origem e
+        destino definidos.
+        """
+        return self.origem_valida and self.destino_valido
 
     @property
     def origem(self):
         """
-        " StateChart Project - Retorna o estado origem da transição
-
-         "
+        StateChart Project - Retorna a origem da transição
         """
         return self._origem
 
-    def seta_origem(self, a_symbol):
-        """ Statechart Project - Seta o nome do estado origem da transição
+    @property
+    def origem_valida(self):
         """
-        if not isinstance(a_symbol, str):
-            raise AssertionError('must be string')
-        else:
+        Statechart Project -  Retorna se a origem de self esta definida.
+        """
+        return self._origem is not None
+
+    def seta_origem(self, a_symbol):
+        """ Statechart Project - Seta o nome da origem da transição
+        """
+        if isinstance(a_symbol, str):
             self._origem = a_symbol
+        else:
+            raise ValueError('must be string')
+
+    def reseta_origem(self):
+        """
+        StateChart Project - reseta a origem de self para o mesma situacao no momento da criacao de self.
+        """
+        self._origem = None
+
+    @property
+    def destino(self):
+        """
+        StateChart Project - Retorna o destino da transição
+        """
+        return self._destino
+
+    @property
+    def destino_valido(self):
+        """
+        Statechart Project -  Retorna se o destino de self esta definido.
+        """
+        return self._destino is not None
+
+    def seta_destino(self, a_symbol):
+        """ Statechart Project - Seta o nome do destino da transição
+        """
+        if isinstance(a_symbol, str):
+            self._destino = a_symbol
+        else:
+            raise ValueError('must be string')
+
+    def reseta_destino(self):
+        """
+        StateChart Project - reseta o destino de self para o mesma situacao no momento da criacao de self.
+        """
+        self._destino = None
+
+    @property
+    def acao(self):
+        """
+        Statechart Project -  Retorna a atividade do transicao.
+        """
+        return self._acao
+
+    @property
+    def acao_valida(self):
+        """
+        Statechart Project -  Retorna se a acao de self esta definida.
+        """
+        return self._acao is not None
+
+    def seta_acao(self, um_symbol):
+        """ StateChart Project - Seta o símbolo associado a acao de self
+                                 O símbolo recebe o statechart como parâmetro.
+                                 A atividade é executada quando o estado é alcançado.
+        """
+        if isinstance(um_symbol, str):
+            self._acao = um_symbol
+        else:
+            raise ValueError('Must be a string')
+
+    def reseta_acao(self):
+        """
+        StateChart Project - reseta a acao de self para o mesma situacao no momento da criacao de self.
+        """
+        self._acao = None
+
+    # def altera_estado_para(self, old_symbol, new_symbol):
+    #     """
+    #     StateChart Project - Altera o nome do estado conectado a transição
+    #                                      de oldSymbol para newSymbol.
+    #     """
+    #
+    #     if not isinstance(old_symbol, str):
+    #         raise AssertionError("Must be a string")
+    #
+    #     if not isinstance(new_symbol, str):
+    #         raise AssertionError("Must be a string")
+    #
+    #     if self._origem == old_symbol:
+    #         self._origem = new_symbol
+    #
+    #     if self._destino == old_symbol:
+    #         self._destino = new_symbol
+
+    def dispara_transicao(self, um_objeto_contexto):
+        """
+        StateChart Project - Dispara a transição no contexto de um_objeto_contexto
+                               Retorna o estado destino da transição.
+        """
+        if self.conectada:
+            if self.acao_valida:
+                method_to_call = getattr(um_objeto_contexto, self.acao.lower())
+                method_to_call(um_objeto_contexto)
+                return self.destino
+            else:
+                raise ValueError("A acao nao e' valida")
+        else:
+            raise ValueError("A transição não está conectada")
+
+    def abilitada(self, um_objeto_contexto):
+        """
+        StateChart Project - Testa se a transição esta abilitada.
+                             a condicao e avaliada no contexto de um_objeto_contexto.
+        """
+        if self.incondicional:
+            return True
+        else:
+            method_to_call = getattr(um_objeto_contexto, self.condicao.lower())
+            resposta = method_to_call(um_objeto_contexto)
+            if isinstance(resposta, bool):
+                return resposta
+            else:
+                raise ValueError('Condicao nao retornou um valor boleano.')

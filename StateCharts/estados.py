@@ -184,7 +184,7 @@ class Estado(ObjetoStateChart):
         return self._acao is not None
 
     def seta_acao(self, um_symbol):
-        """ StateChart Project - Seta o símbolo associado a acao do receptor
+        """ StateChart Project - Seta o símbolo associado a acao de self
                                  O símbolo recebe o statechart como parâmetro.
                                  A atividade é executada quando o estado é alcançado.
         """
@@ -273,11 +273,11 @@ class Estado(ObjetoStateChart):
         StateChart Project - Ativa o estado executando sua atividade no contexto de um_objeto_contexto.
         Retorna o resultado da execucao ou None.
         """
-        resposta = None
         if self.acao_valida:
-            method_to_call = getattr(um_objeto_contexto, self._acao.lower())
-            resposta = method_to_call(um_objeto_contexto)
-        return resposta
+            method_to_call = getattr(um_objeto_contexto, self.acao.lower())
+            return method_to_call(um_objeto_contexto)
+        else:
+            raise AssertionError("A acao nao e' valida")
 
     # def estados_default_2(self, um_diagrama):
     #     """
