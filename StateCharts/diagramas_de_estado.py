@@ -24,16 +24,21 @@ class DiagramaDeEstados(ObjetoStateChart):
         """
         return False
 
-    def __init__(self):
+    def __init__(self, a_symbol=None):
         super().__init__()
         self._estados = {}      # dicionario com todos os estados
         self._transicoes = {}   # dicionario com todas as transicoes
         self._eventos = set()   # conjunto dos eventos de todas as transice
-        self._estados_corrente = []
-        self._cliente = None
+        self._estados_corrente = None   # indica que o diagrama nao esta ativo
         self._fila_eventos = []
-        self._raiz = 'raiz'
-        self._estados.update({self._raiz: Estado().seta_nome(self._raiz)})
+        self.reseta_cliente()
+
+        temp = Estado()
+        if isinstance(a_symbol, str):
+            self._raiz = a_symbol
+        else:
+            self._raiz = temp.nome
+        self._estados.update({self._raiz: temp})
 
     def _adiciona_estado(self, a_symbol):
         """
@@ -134,6 +139,10 @@ class DiagramaDeEstados(ObjetoStateChart):
                               Os estados iniciais são colocados na lista de estadosAtivos.
                               Suas ações são executadas
         """
+
+        if not self.cliente_valido:
+            raise AssertionError('Nenhum cliente associado ao diagrama')
+
         self._estados_corrente = []
         for estado in self._estados.values():
             if estado.inicial:
@@ -160,6 +169,17 @@ class DiagramaDeEstados(ObjetoStateChart):
         """
         self._cliente = an_object
 
+    def reseta_cliente(self):
+        """ Statechart Project - Reseta o atributo cliente para o valor inicial
+        """
+        self._cliente = None
+
+    @property
+    def cliente_valido(self):
+        """ Statechart Project - Retorna True se um cliente foi atribuido a self
+        """
+        return self._cliente is not None
+
     def conecta_a_com_e_executando_caso(self, origem_symbol, destino_symbol, evento_symbol, evento_colateral_symbol, acao_symbol, condicao_symbol):
         """
         " Statechart Project - Conecta o estado origem de nome aSymbol com o estado destino
@@ -173,8 +193,8 @@ class DiagramaDeEstados(ObjetoStateChart):
 
         transicao = Transicao()
         transicao.seta_evento(evento_symbol)
-        transicao.seta_origem(origem_symbol)
-        transicao.seta_destino(destino_symbol)
+        transicao.seta_origem(origem.nome)
+        transicao.seta_destino(destino.nome)
         transicao.seta_acao(acao_symbol)
         if condicao_symbol != "true":
             transicao.seta_condicao(condicao_symbol)
@@ -211,11 +231,11 @@ class DiagramaDeEstados(ObjetoStateChart):
         """
         return self._estados_corrente.copy()
 
-    @property
-    def estado_raiz(self):
-        """ Statechart Project - Retorna o estado raiz do statechart.
-        """
-        return self.o_estado(self._raiz)
+    # @property
+    # def estado_raiz(self):
+    #     """ Statechart Project - Retorna o estado raiz do statechart.
+    #     """
+    #     return self.o_estado(self._raiz)
 
     def processa_evento(self, a_symbol):
         """
@@ -227,6 +247,9 @@ class DiagramaDeEstados(ObjetoStateChart):
                                            Os estados alcançados tem suas atividades executadas.
         "
         """
+        if self._estados_corrente is None:
+            raise AssertionError('diagram nao esta ativo')
+
         if not isinstance(a_symbol, str):
             raise AssertionError('must be string')
 
@@ -309,24 +332,24 @@ class DiagramaDeEstados(ObjetoStateChart):
         """
         return self._raiz
 
-    def seta_raiz(self, a_symbol):
-        """
-        Statechart Project - Seta o nome do statechart.
-        """
-        if isinstance(a_symbol, str):
-            if a_symbol:
-                if self._raiz != a_symbol:
-                    if self.contem_estado(a_symbol):
-                        raise ValueError("Estado {0} ja existente no diagrama".format(a_symbol))
-                    else:
-                        estado = self._estados.pop(self._raiz)
-                        estado.seta_nome(a_symbol)
-                        self._raiz = a_symbol
-                        self._estados.update({estado.nome: estado})
-            else:
-                raise ValueError("Empty name received")
-        else:
-            raise ValueError("Must be string")
+    # def seta_raiz(self, a_symbol):
+    #     """
+    #     Statechart Project - Seta o nome do statechart.
+    #     """
+    #     if isinstance(a_symbol, str):
+    #         if a_symbol:
+    #             if self._raiz != a_symbol:
+    #                 if self.contem_estado(a_symbol):
+    #                     raise ValueError("Estado {0} ja existente no diagrama".format(a_symbol))
+    #                 else:
+    #                     estado = self._estados.pop(self._raiz)
+    #                     estado.seta_nome(a_symbol)
+    #                     self._raiz = a_symbol
+    #                     self._estados.update({estado.nome: estado})
+    #         else:
+    #             raise ValueError("Empty name received")
+    #     else:
+    #         raise ValueError("Must be string")
 
     def o_estado(self, a_symbol):
         """ Statechart Project - Retorna o estado de nome aSymbol.

@@ -46,6 +46,7 @@ class Estado(ObjetoStateChart):
         self.reseta_recipiente()
         self.reseta_contidos()
         self.reseta_acao()
+        print("NOVO ESTADO CRIADO")
 
     @property
     def imagem(self):
