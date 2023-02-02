@@ -29,14 +29,149 @@ class ContextoParaTeste:
 
 class TestDiagramaDeEstados(unittest.TestCase):
 
-    def test_single_state_diagram(self):
+    def test_classe_abstrata(self):
+        self.assertFalse(DiagramaDeEstados.classe_abstrata())
+
+    def test_imagem(self):
+        self.assertEqual("diagrama", DiagramaDeEstados().imagem)
+
+    def test_novo_diagrama_sem_nome(self):
+        d = DiagramaDeEstados()
+        self.assertEqual(d.raiz, d.o_estado(d.raiz).nome)
+
+    def test_novo_diagrama_com_nome(self):
+        d = DiagramaDeEstados("junk")
+        self.assertEqual(d.raiz, d.o_estado(d.raiz).nome)
+
+    def test_o_estado_invalid_input_raises_exception(self):
+        d = DiagramaDeEstados()
+        with self.assertRaises(ValueError):
+            d.o_estado(123)
+
+    def test_o_estado_simbolo_inexistente_raises_exception(self):
+        d = DiagramaDeEstados()
+        with self.assertRaises(KeyError):
+            d.o_estado("junk")
+
+    def test_a_transicao_invalid_input_raises_exception(self):
+        d = DiagramaDeEstados()
+        with self.assertRaises(ValueError):
+            d.a_transicao(123)
+
+    def test_a_transicao_simbolo_inexistente_raises_exception(self):
+        d = DiagramaDeEstados()
+        with self.assertRaises(KeyError):
+            d.a_transicao("junk")
+
+    def test_conecta_com_invalid_origem_raises_exception(self):
+        d = DiagramaDeEstados()
+        with self.assertRaises(ValueError):
+            d.conecta_a_com_e_executando_caso(123, d.raiz, "a", "nil", "_acao_emite_beep", "true")
+
+    def test_conecta_com_invalid_destino_raises_exception(self):
+        d = DiagramaDeEstados()
+        with self.assertRaises(ValueError):
+            d.conecta_a_com_e_executando_caso(d.raiz, 123, "a", "nil", "_acao_emite_beep", "true")
+
+    def test_conecta_com_invalid_evento_raises_exception(self):
+        d = DiagramaDeEstados()
+        with self.assertRaises(ValueError):
+            d.conecta_a_com_e_executando_caso(d.raiz, d.raiz, 123, "nil", "_acao_emite_beep", "true")
+
+    def test_conecta_com_invalid_evento_colateral_raises_exception(self):
+        d = DiagramaDeEstados()
+        with self.assertRaises(KeyError):
+            d.conecta_a_com_e_executando_caso(d.raiz, d.raiz, "a", 123, "_acao_emite_beep", "true")
+
+    def test_conecta_com_invalid_acao_raises_exception(self):
+        d = DiagramaDeEstados()
+        with self.assertRaises(ValueError):
+            d.conecta_a_com_e_executando_caso(d.raiz, d.raiz, "a", "nil", 123, "true")
+
+    def test_conecta_com_invalid_condicao_raises_exception(self):
+        d = DiagramaDeEstados()
+        with self.assertRaises(ValueError):
+            d.conecta_a_com_e_executando_caso(d.raiz, d.raiz, "a", "nil", "_acao_emite_beep", 123)
+
+    def test_o_estado_simbolo_existente_passes(self):
+        d = DiagramaDeEstados()
+        self.assertEqual(d.raiz, d.o_estado(d.raiz).nome)
+
+    def test_ativa_sem_estados_definidos_raises_exception(self):
+        d = DiagramaDeEstados()
+        with self.assertRaises(AssertionError):
+            d.ativa()
+
+    def test_ativa_sem_estados_iniciais_raises_exception(self):
+        d = DiagramaDeEstados()
+        with self.assertRaises(AssertionError):
+            d.conecta_a_com_e_executando_caso(d.raiz, d.raiz, "a", "nil", "_acao_emite_beep", "true")
+            d.ativa()
+
+    def test_ativa_sem_cliente_valido_raises_exception(self):
+        d = DiagramaDeEstados()
+        with self.assertRaises(AssertionError):
+            d.conecta_a_com_e_executando_caso(d.raiz, d.raiz, "a", "nil", "_acao_emite_beep", "true")
+            d.seta_estado_inicial(d.raiz)
+            d.ativa()
+
+    def test_ativa_scenario_diagrama_minimo_sem_nome_passes(self):
+        d = DiagramaDeEstados()
+        d.conecta_a_com_e_executando_caso(d.raiz, d.raiz, "a", "nil", "_acao_emite_beep", "true")
+        d.seta_estado_inicial(d.raiz)
+        d.seta_cliente(ContextoParaTeste())
+        d.ativa()
+
+    def test_ativa_scenario_diagrama_minimo_com_nome_passes(self):
+        d = DiagramaDeEstados("junk")
+        d.conecta_a_com_e_executando_caso("junk", "junk", "a", "nil", "_acao_emite_beep", "true")
+        d.seta_estado_inicial("junk")
+        d.seta_cliente(ContextoParaTeste())
+        d.ativa()
+
+    def test_client_indefinido_raise_exception(self):
+        d = DiagramaDeEstados()
+        with self.assertRaises(KeyError):
+            d.cliente
+
+    def test_seta_cliente(self):
+        d = DiagramaDeEstados()
+        d.seta_cliente("junk")
+        self.assertEqual("junk", d.cliente)
+
+    def test_cliente_after_reseta_client_raise_exception(self):
+        d = DiagramaDeEstados()
+        with self.assertRaises(KeyError):
+            d.seta_cliente("junk")
+            self.assertEqual("junk", d.cliente)
+            d.reseta_cliente()
+            d.cliente
+
+    def test_cliente_valido_for_new_instances_results_false(self):
+        d = DiagramaDeEstados()
+        self.assertFalse(d.cliente_valido)
+
+    def test_cliente_valido_after_seta_cliente_results_true(self):
+        d = DiagramaDeEstados()
+        self.assertFalse(d.cliente_valido)
+        d.seta_cliente("junk")
+        self.assertTrue(d.cliente_valido)
+
+    def test_processa_scenario_diagrama_minimo_sem_nome_passes(self):
         d = DiagramaDeEstados()
         d.conecta_a_com_e_executando_caso(d.raiz, d.raiz, "a", "nil", "_acao_emite_beep", "true")
         d.seta_estado_inicial(d.raiz)
         d.seta_cliente(ContextoParaTeste())
         d.ativa()
         d.processa_evento("a")
-        print(d)
+
+    def test_processa_scenario_diagrama_minimo_com_nome_passes(self):
+        d = DiagramaDeEstados("junk")
+        d.conecta_a_com_e_executando_caso("junk", "junk", "a", "nil", "_acao_emite_beep", "true")
+        d.seta_estado_inicial("junk")
+        d.seta_cliente(ContextoParaTeste())
+        d.ativa()
+        d.processa_evento("a")
 
     def test_basic_diagram(self):
         d = DiagramaDeEstados("main")
@@ -44,8 +179,6 @@ class TestDiagramaDeEstados(unittest.TestCase):
         d.adiciona_estado_em("chime", "main")
         d.adiciona_estado_em("silence", "main")
         d.adiciona_estado_em("time", "main")
-
-        d.seta_estado_default("time")
 
         d.conecta_a_com_e_executando_caso("time", "chime", "a", "nil", "_acao_emite_beep", "true")
         d.conecta_a_com_e_executando_caso("time", "silence", "b", "nil", "_acao_emite_beep", "true")
@@ -65,59 +198,44 @@ class TestDiagramaDeEstados(unittest.TestCase):
         d.processa_evento("t_hits_hr")
         d.processa_evento("d")
 
-        print(d)
-
     def test_chapter_6_listagem_61(self):
-        state = DiagramaDeEstados()
-        d.seta_nome_raiz("main")
-        d.adiciona_superestado_em("chime_st", "main")
-        d.adiciona_superestado_em("displays", "main")
-        d.adiciona_superestado_em("c_enab", "chime_st")
-        print(state)
+        d = DiagramaDeEstados("main")
+        d.adiciona_estado_em("chime_st", "main")
+        d.adiciona_estado_em("displays", "main")
+        d.adiciona_estado_em("c_enab", "chime_st")
 
     def test_chapter_6_listagem_62(self):
-        state = DiagramaDeEstados()
-        d.seta_nome_raiz("main")
+        d = DiagramaDeEstados("main")
 
-        d.adiciona_superestado_em("chime_st", "main")
-        d.adiciona_superestado_em("displays", "main")
-        d.adiciona_superestado_em("c_enab", "chime_st")
+        d.adiciona_estado_em("chime_st", "main")
+        d.adiciona_estado_em("displays", "main")
+        d.adiciona_estado_em("c_enab", "chime_st")
 
         d.adiciona_estado_em("c_disab", "chime_st")
         d.adiciona_estado_em("quiet", "c_enab")
         d.adiciona_estado_em("c_beep", "c_enab")
         d.adiciona_estado_em("chime", "displays")
         d.adiciona_estado_em("time", "displays")
-
-        print(state)
 
     def test_chapter_6_listagem_63(self):
-        state = DiagramaDeEstados()
-        d.seta_nome_raiz("main")
+        d = DiagramaDeEstados("main")
 
-        d.adiciona_superestado_em("chime_st", "main")
-        d.adiciona_superestado_em("displays", "main")
-        d.adiciona_superestado_em("c_enab", "chime_st")
+        d.adiciona_estado_em("chime_st", "main")
+        d.adiciona_estado_em("displays", "main")
+        d.adiciona_estado_em("c_enab", "chime_st")
 
         d.adiciona_estado_em("c_disab", "chime_st")
         d.adiciona_estado_em("quiet", "c_enab")
         d.adiciona_estado_em("c_beep", "c_enab")
         d.adiciona_estado_em("chime", "displays")
         d.adiciona_estado_em("time", "displays")
-
-        d.seta_estado_default("c_disab")
-        d.seta_estado_default("time")
-        d.seta_estado_default("quiet")
-
-        print(state)
 
     def test_chapter_6_listagem_64(self):
-        state = DiagramaDeEstados()
-        d.seta_nome_raiz("main")
+        d = DiagramaDeEstados("main")
 
-        d.adiciona_superestado_em("chime_st", "main")
-        d.adiciona_superestado_em("displays", "main")
-        d.adiciona_superestado_em("c_enab", "chime_st")
+        d.adiciona_estado_em("chime_st", "main")
+        d.adiciona_estado_em("displays", "main")
+        d.adiciona_estado_em("c_enab", "chime_st")
 
         d.adiciona_estado_em("c_disab", "chime_st")
         d.adiciona_estado_em("quiet", "c_enab")
@@ -125,22 +243,15 @@ class TestDiagramaDeEstados(unittest.TestCase):
         d.adiciona_estado_em("chime", "displays")
         d.adiciona_estado_em("time", "displays")
 
-        d.seta_estado_default("c_disab")
-        d.seta_estado_default("time")
-        d.seta_estado_default("quiet")
-
         d.seta_estado_inicial("chime_st")
-        d.seta_estado_default("displays")
-
-        print(state)
+        d.seta_estado_inicial("displays")
 
     def test_chapter_6_listagem_65(self):
-        state = DiagramaDeEstados()
-        d.seta_nome_raiz("main")
+        d = DiagramaDeEstados("main")
 
-        d.adiciona_superestado_em("chime_st", "main")
-        d.adiciona_superestado_em("displays", "main")
-        d.adiciona_superestado_em("c_enab", "chime_st")
+        d.adiciona_estado_em("chime_st", "main")
+        d.adiciona_estado_em("displays", "main")
+        d.adiciona_estado_em("c_enab", "chime_st")
 
         d.adiciona_estado_em("c_disab", "chime_st")
         d.adiciona_estado_em("quiet", "c_enab")
@@ -148,12 +259,8 @@ class TestDiagramaDeEstados(unittest.TestCase):
         d.adiciona_estado_em("chime", "displays")
         d.adiciona_estado_em("time", "displays")
 
-        d.seta_estado_default("c_disab")
-        d.seta_estado_default("time")
-        d.seta_estado_default("quiet")
-
         d.seta_estado_inicial("chime_st")
-        d.seta_estado_default("displays")
+        d.seta_estado_inicial("displays")
 
         d.conecta_a_com_e_executando_caso("time", "chime", "a", "nil", "emite_beep", "true")
         d.conecta_a_com_e_executando_caso("chime", "time", "a", "nil", "emite_beep", "true")
@@ -163,15 +270,12 @@ class TestDiagramaDeEstados(unittest.TestCase):
         d.conecta_a_com_e_executando_caso("c_disab", "quiet", "d", "nil", "nil", "in_chime")
         d.conecta_a_com_e_executando_caso("c_enab", "c_disab", "d", "nil", "nil", "in_chime")
 
-        print(state)
-
     def test_chapter_6_listagem_66(self):
-        state = DiagramaDeEstados()
-        d.seta_nome_raiz("main")
+        d = DiagramaDeEstados("main")
 
-        d.adiciona_superestado_em("chime_st", "main")
-        d.adiciona_superestado_em("displays", "main")
-        d.adiciona_superestado_em("c_enab", "chime_st")
+        d.adiciona_estado_em("chime_st", "main")
+        d.adiciona_estado_em("displays", "main")
+        d.adiciona_estado_em("c_enab", "chime_st")
 
         d.adiciona_estado_em("c_disab", "chime_st")
         d.adiciona_estado_em("quiet", "c_enab")
@@ -179,30 +283,27 @@ class TestDiagramaDeEstados(unittest.TestCase):
         d.adiciona_estado_em("chime", "displays")
         d.adiciona_estado_em("time", "displays")
 
-        d.seta_estado_default("c_disab")
-        d.seta_estado_default("time")
-        d.seta_estado_default("quiet")
-
         d.seta_estado_inicial("chime_st")
         d.seta_estado_inicial("displays")
 
-        d.conecta_a_com_e_executando_caso("time", "chime", "a", "nil", "emiteBeep", "true")
-        d.conecta_a_com_e_executando_caso("chime", "time", "a", "nil", "emiteBeep", "true")
+        d.conecta_a_com_e_executando_caso("time", "chime", "a", "nil", "emite_beep", "true")
+        d.conecta_a_com_e_executando_caso("chime", "time", "a", "nil", "emite_beep", "true")
 
         d.conecta_a_com_e_executando_caso("quiet", "c_beep", "t_hits_hr", "nil", "nil", "true")
         d.conecta_a_com_e_executando_caso("c_beep", "quiet", "beep_st", "nil", "nil", "true")
-        d.conecta_a_com_e_executando_caso("c_disab", "quiet", "d", "nil", "nil", "inChime")
-        d.conecta_a_com_e_executando_caso("c_enab", "c_disab", "d", "nil", "nil", "inChime")
+        d.conecta_a_com_e_executando_caso("c_disab", "quiet", "d", "nil", "nil", "in_chime")
+        d.conecta_a_com_e_executando_caso("c_enab", "c_disab", "d", "nil", "nil", "in_chime")
 
+        d.seta_cliente(ContextoParaTeste())
         d.ativa()
-        d.seta_cliente(self)
+
         d.processa_evento("a")
         d.processa_evento("a")
-        #d.evento("d")
-        #d.evento("a")
-        #d.evento("d")
-        #d.evento("t_hits_hr")
-        #d.evento("d")
+        d.processa_evento("d")
+        d.processa_evento("a")
+        d.processa_evento("d")
+        d.processa_evento("t_hits_hr")
+        d.processa_evento("d")
 
 
 if __name__ == '__main__':
