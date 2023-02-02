@@ -19,16 +19,14 @@ class Estado(ObjetoStateChart):
         return False
 
     def __str__(self):
-        return "({0}){1} : {2} -> {3}".format(self.__class__.__name__,
-                                              self._nome,
-                                              self._acao,
-                                              self._transicoes)
+        return "{0}: / {1} -> {2}".format(self._nome,
+                                          self._acao,
+                                          self._transicoes)
 
     def __repr__(self):
-        return "({0}){1} : {2} -> {3}".format(self.__class__.__name__,
-                                              self._nome,
-                                              self._acao,
-                                              self._transicoes)
+        return "{0}: / {1} -> {2}".format(self._nome,
+                                          self._acao,
+                                          self._transicoes)
 
     def __init__(self):
         """

@@ -18,20 +18,20 @@ class Transicao(ObjetoStateChart):
         return False
 
     def __str__(self):
-        return "({0}){1} : {2} [ {3} ] / {4} -> {5}".format(self.__class__.__name__,
-                                                            self._nome,
-                                                            self._evento,
-                                                            self._condicao,
-                                                            self._acao,
-                                                            self._destino)
+        return "{0}: {4} -> {1} [{2}] / {3} -> {5}".format(self._nome,
+                                                           self._evento,
+                                                           self._condicao,
+                                                           self._acao,
+                                                           self._origem,
+                                                           self._destino)
 
     def __repr__(self):
-        return "({0}){1} : {2} [ {3} ] / {4} -> {5}".format(self.__class__.__name__,
-                                                            self._nome,
-                                                            self._evento,
-                                                            self._condicao,
-                                                            self._acao,
-                                                            self._destino)
+        return "{0}: {4} -> {1} [{2}] / {3} -> {5}".format(self._nome,
+                                                           self._evento,
+                                                           self._condicao,
+                                                           self._acao,
+                                                           self._origem,
+                                                           self._destino)
 
     def __eq__(self, other):
         if not isinstance(other, Transicao):

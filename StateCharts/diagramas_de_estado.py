@@ -28,9 +28,7 @@ class DiagramaDeEstados(ObjetoStateChart):
         super().__init__()
         self._estados = {}      # dicionario com todos os estados
         self._transicoes = {}   # dicionario com todas as transicoes
-        self._eventos = set()   # conjunto dos eventos de todas as transice
         self._estados_corrente = None   # indica que o diagrama nao esta ativo
-        self._fila_eventos = []
 
         self._cliente = None
         self.reseta_cliente()
@@ -278,6 +276,8 @@ class DiagramaDeEstados(ObjetoStateChart):
         # para todas as transicoes coletadas
         # testa se a transicao esta abilitada
         # e para as transicoes abilitadas dispara a transicao
+        transicoes_disparadas = []
+        estados_alcancados = []
 
         disparou = False
         for t in transicoes_candidatas:
@@ -286,9 +286,14 @@ class DiagramaDeEstados(ObjetoStateChart):
                 destino = transicao.dispara_transicao(self.cliente)
                 self._estados_corrente.remove(transicao.origem)
                 self._estados_corrente.append(destino)
+
+                transicoes_disparadas.append(transicao.nome)
+                estados_alcancados.append(destino)
                 disparou = True
 
-        return disparou
+        return {"disparou": disparou,
+                "transicoes_disparadas": transicoes_disparadas,
+                "estados_alcancados": estados_alcancados}
 
     def existe_estado(self, a_symbol):
         """ Statechart Project - Retorna true se o estado já existe no statechart.
